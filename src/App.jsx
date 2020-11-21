@@ -1,10 +1,9 @@
 import React from 'react';
-import defaultDataset from "./dataset";
 import './assets/styles/style.css'
 // 関数のimportは{}で囲む エントリポイントを用意すると１行で複数コンポーネントがimportできる
 import {AnswersList, Chats} from './components/index'
 import FormDialog from './components/Forms/FormDialog';
-import { TramRounded } from '@material-ui/icons';
+import {db} from './firebase/index'
 
 export default class App extends React.Component {
   constructor(props) {
@@ -13,7 +12,7 @@ export default class App extends React.Component {
       answers: [],
       chats: [],
       currentId: "init",
-      dataset: defaultDataset,
+      dataset: {},
       open: false
     }
     // 関数をバインド 別コンポーネントに渡すコールバック関数をconstructor内でバインドさせるといい
@@ -104,10 +103,30 @@ export default class App extends React.Component {
     this.setState({open: false});
   };
 
+  initDataset = (dataset) => {
+    this.setState({dataset: dataset})
+  }
+
   // 最初のレンダーが終わったら一度だけinitAnswerを実行してstateを書き換える
   componentDidMount() {
-    const initAnswer = "";
-    this.selectAnswer(initAnswer, this.state.currentId);
+    (async() => {
+      const dataset = this.state.dataset
+
+      // snapshots => firestoreから取得したコレクションの一覧
+      await db.collection('questions').get().then(snapshots => {
+        snapshots.forEach(doc => {
+          const id = doc.id
+          const data = doc.data()
+          dataset[id] = data
+        })
+      }).catch(error => {
+        console.log(error)
+      })
+
+      this.initDataset(dataset)
+      const initAnswer = "";
+      this.selectAnswer(initAnswer, this.state.currentId)
+    })()
   }
 
   componentDidUpdate() {
