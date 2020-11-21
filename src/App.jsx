@@ -3,6 +3,8 @@ import defaultDataset from "./dataset";
 import './assets/styles/style.css'
 // 関数のimportは{}で囲む エントリポイントを用意すると１行で複数コンポーネントがimportできる
 import {AnswersList, Chats} from './components/index'
+import FormDialog from './components/Forms/FormDialog';
+import { TramRounded } from '@material-ui/icons';
 
 export default class App extends React.Component {
   constructor(props) {
@@ -16,6 +18,8 @@ export default class App extends React.Component {
     }
     // 関数をバインド 別コンポーネントに渡すコールバック関数をconstructor内でバインドさせるといい
     this.selectAnswer = this.selectAnswer.bind(this)
+    this.handleClickOpen = this.handleClickOpen.bind(this)
+    this.handleClose = this.handleClose.bind(this)
   }
 
   displayNextQuestion = (nextQuestionId) => {
@@ -37,12 +41,18 @@ export default class App extends React.Component {
       case (nextQuestionId === 'init') :
         setTimeout(() => {this.displayNextQuestion(nextQuestionId)},500);
         break;
+
       case (/^https:*/.test(nextQuestionId)) :
         const a = document.createElement('a');
         a.href = nextQuestionId;
         a.target = '_blank';
         a.click();
         break;
+
+      case (nextQuestionId === 'contact') :
+        this.handleClickOpen()
+        break;
+
       default :
         const chats = this.state.chats;
         chats.push({
@@ -86,6 +96,14 @@ export default class App extends React.Component {
   //   });
   // }
 
+  handleClickOpen = () => {
+    this.setState({open: true});
+  };
+
+  handleClose = () => {
+    this.setState({open: false});
+  };
+
   // 最初のレンダーが終わったら一度だけinitAnswerを実行してstateを書き換える
   componentDidMount() {
     const initAnswer = "";
@@ -105,6 +123,7 @@ export default class App extends React.Component {
         <div className="c-box">
           <Chats chats={this.state.chats} />
           <AnswersList answers={this.state.answers} select={this.selectAnswer} />
+          <FormDialog open={this.state.open} handleClose={this.handleClose} />
         </div>
       </section>
     );
